@@ -1,0 +1,49 @@
+<script>
+  // LocalStorage fallback Data SDK
+  if (!window.dataSdk) {
+    const STORAGE_KEY = "aic_kisaulu_contributions";
+
+    window.dataSdk = {
+      async init(handler) {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        handler.onDataChanged(data);
+        this._handler = handler;
+        return { isOk: true };
+      },
+
+      async create(record) {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        record.__backendId = crypto.randomUUID();
+        data.push(record);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        this._handler.onDataChanged(data);
+        return { isOk: true };
+      },
+
+      async update(record) {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const index = data.findIndex(r => r.__backendId === record.__backendId);
+        if (index !== -1) data[index] = record;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        this._handler.onDataChanged(data);
+        return { isOk: true };
+      },
+
+      async delete(record) {
+        let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        data = data.filter(r => r.__backendId !== record.__backendId);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        this._handler.onDataChanged(data);
+        return { isOk: true };
+      }
+    };
+  }
+
+  // Element SDK safe guard
+  if (!window.elementSdk) {
+    window.elementSdk = {
+      init() {},
+      setConfig() {}
+    };
+  }
+</script>
